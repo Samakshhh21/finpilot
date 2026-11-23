@@ -2,6 +2,7 @@
 package com.example.finpilot.controller;
 
 import com.example.finpilot.dto.request.AccountRequest;
+import com.example.finpilot.dto.response.AccountDetailsResponse;
 import com.example.finpilot.dto.response.AccountResponse;
 import com.example.finpilot.entity.Account;
 import com.example.finpilot.service.AccountService;
@@ -43,5 +44,15 @@ public class AccountController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AccountDetailsResponse> getAccountDetails(
+            @PathVariable Long id) {
+
+        AccountDetailsResponse response =
+                accountService.getAccountDetails(id);
+
+        return ResponseEntity.ok(response);
     }
 }

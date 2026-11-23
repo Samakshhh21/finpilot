@@ -1,8 +1,11 @@
 
 package com.example.finpilot.service;
 
+import com.example.finpilot.dto.response.AccountDetailsResponse;
+import com.example.finpilot.dto.response.UserSummaryResponse;
 import com.example.finpilot.entity.Account;
 import com.example.finpilot.entity.User;
+import com.example.finpilot.exception.AccountNotFoundException;
 import com.example.finpilot.exception.UserNotFoundException;
 import com.example.finpilot.repository.AccountRepository;
 import com.example.finpilot.repository.UserRepository;
@@ -58,6 +61,31 @@ public class AccountService {
                 + secureRandom.nextLong(9000000000000000L);
 
         return String.valueOf(number);
+    }
+
+    @Transactional(readOnly = true)
+    public AccountDetailsResponse getAccountDetails(Long accountId) {
+
+        Account account = accountRepository.findByIdWithUser(accountId)
+                .orElseThrow(() ->
+                        new AccountNotFoundException("Account not found")
+                );
+
+        UserSummaryResponse userResponse = new UserSummaryResponse(
+                account.getUser().getId(),
+                account.getUser().getName(),
+                account.getUser().getEmail()
+        );
+
+        return new AccountDetailsResponse(
+                account.getId(),
+                account.getAccountNumber(),
+                account.getBalance(),
+                account.getCurrency(),
+                account.getStatus(),
+                account.getCreatedAt(),
+                userResponse
+        );
     }
 }
 

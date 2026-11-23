@@ -69,6 +69,17 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(AccountNotFoundException.class)
+    public ResponseEntity<ApiError> handleAccountNotFound(
+            AccountNotFoundException ex) {
+
+        return buildResponse(
+                HttpStatus.NOT_FOUND,
+                ex.getMessage(),
+                null
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpectedException(
             Exception ex) {
