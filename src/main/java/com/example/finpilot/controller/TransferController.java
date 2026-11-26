@@ -23,9 +23,11 @@ public class TransferController {
 
     @PostMapping
     public ResponseEntity<TransferResponse> transfer(
-            @Valid @RequestBody TransferRequest request) {
+            @Valid @RequestBody TransferRequest request,
+            @RequestHeader("Idempotency-Key") String idempotencyKey) {
 
-        TransferResponse response = transferService.transfer(request);
+        TransferResponse response =
+                transferService.transfer(request, idempotencyKey);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

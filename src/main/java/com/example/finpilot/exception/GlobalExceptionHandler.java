@@ -48,6 +48,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidTransferException.class)
+    public ResponseEntity<ApiError> handleInvalidTransfer(
+            InvalidTransferException exception) {
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                exception.getMessage(),
+                null
+        );
+    }
+
     @ExceptionHandler(AccountNotActiveException.class)
     public ResponseEntity<ApiError> handleAccountNotActive(
             AccountNotActiveException ex) {
