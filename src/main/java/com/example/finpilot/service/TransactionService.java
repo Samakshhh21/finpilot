@@ -3,10 +3,7 @@ package com.example.finpilot.service;
 
 import com.example.finpilot.dto.request.TransactionRequest;
 import com.example.finpilot.dto.response.TransactionResponse;
-import com.example.finpilot.entity.Account;
-import com.example.finpilot.entity.AccountStatus;
-import com.example.finpilot.entity.FinancialTransaction;
-import com.example.finpilot.entity.TransactionType;
+import com.example.finpilot.entity.*;
 import com.example.finpilot.exception.AccountNotFoundException;
 import com.example.finpilot.exception.AccountNotActiveException;
 import com.example.finpilot.exception.InvalidPaginationException;
@@ -18,6 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.Instant;
 
 @Service
 public class TransactionService {
@@ -79,6 +79,86 @@ public class TransactionService {
                 savedTransaction.getCreatedAt()
         );
     }
+
+
+
+    private TransactionResponse mapToResponse(
+            FinancialTransaction transaction) {
+
+        return new TransactionResponse(
+                transaction.getId(),
+                transaction.getAccount().getId(),
+                transaction.getAmount(),
+                transaction.getType(),
+                transaction.getCategory(),
+                transaction.getDescription(),
+                transaction.getTransactionDate(),
+                transaction.getCreatedAt()
+        );
+    }
+
+
+
+    @Transactional(readOnly = true)
+    public Page<TransactionResponse> searchTransactions(
+            Long accountId,
+            TransactionType type,
+            TransactionCategory category,
+            Instant fromDate,
+            Instant toDate,
+            BigDecimal minAmount,
+            BigDecimal maxAmount,
+            int page,
+            int size) {
+
+        if (page < 0) {
+            throw new InvalidPaginationException(
+                    "Page number cannot be negative");
+        }
+
+        if (size < 1 || size > 100) {
+            throw new InvalidPaginationException(
+                    "Page size must be between 1 and 100");
+        }
+
+        if (fromDate != null && toDate != null
+                && !fromDate.isBefore(toDate)) {
+            throw new IllegalArgumentException(
+                    "From date must be before to date");
+        }
+
+        if (minAmount != null &&
+                minAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                    "Minimum amount cannot be negative");
+        }
+
+        if (maxAmount != null &&
+                maxAmount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                    "Maximum amount cannot be negative");
+        }
+
+        if (minAmount != null && maxAmount != null
+                && minAmount.compareTo(maxAmount) > 0) {
+            throw new IllegalArgumentException(
+                    "Minimum amount cannot exceed maximum amount");
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        return transactionRepository.searchTransactions(
+                accountId,
+                type,
+                category,
+                fromDate,
+                toDate,
+                minAmount,
+                maxAmount,
+                pageable
+        ).map(this::mapToResponse);
+    }
+
 
     @Transactional(readOnly = true)
     public Page<TransactionResponse> getTransactionHistory(
